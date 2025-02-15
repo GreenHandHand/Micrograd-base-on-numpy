@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Iterable, Literal
+from typing import Any, Literal
 from abc import abstractmethod
 
 import numpy as np

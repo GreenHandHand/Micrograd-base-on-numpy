@@ -1,10 +1,9 @@
-from ..variable import Variable
-
-from ..module import Module, Linear, SGD, CrossEntropyLoss
-
 import numpy as np
 import torch
 from torch import nn
+
+from ..module import SGD, CrossEntropyLoss, Linear, Module
+from ..variable import Variable
 
 
 def generate_compare_data(
@@ -44,12 +43,9 @@ class TestModule:
                 return x
 
         from sklearn.datasets import make_moons
-        import matplotlib.pyplot as plt
 
         x, y = make_moons(n_samples=100, noise=0.1)
         x, y = Variable(x), Variable(y, dtype=np.long)
-        # plt.scatter(x[:, 0], x[:, 1], c=y)
-        # plt.show()
 
         EPOCH = 5
         print(x.shape, y.shape)

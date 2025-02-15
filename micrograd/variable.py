@@ -4,7 +4,6 @@ import os
 from typing import Callable, Self
 
 import numpy as np
-from graphviz import Digraph
 
 from .var_utils import sum_broadcast_dim
 
@@ -359,33 +358,37 @@ class Variable:
             v._backward()
 
     def draw(self, save_dir: str = "test_output", save_name: str = "round_table"):
-        assert "Digraph" in globals(), "Please install graphviz first"
-        visited = set()
+        try:
+            from graphviz import Digraph # type: ignore
+            visited = set()
 
-        def add_edge(dot: Digraph, node: Variable):
-            if node in visited:
-                return
-            else:
-                visited.add(node)
-            if len(node._prev) == 0:
-                dot.node(
-                    str(id(node)),
-                    label=f"{str(node)}",
-                    shape="record",
-                )
-            else:
-                for prev in node._prev:
-                    add_edge(dot, prev)
+            def add_edge(dot: Digraph, node: Variable):
+                if node in visited:
+                    return
+                else:
+                    visited.add(node)
+                if len(node._prev) == 0:
                     dot.node(
                         str(id(node)),
-                        label="{%s | %s}" % (node._op, str(node)),
+                        label=f"{str(node)}",
                         shape="record",
                     )
-                    dot.edge(str(id(prev)), str(id(node)))
+                else:
+                    for prev in node._prev:
+                        add_edge(dot, prev)
+                        dot.node(
+                            str(id(node)),
+                            label="{%s | %s}" % (node._op, str(node)),
+                            shape="record",
+                        )
+                        dot.edge(str(id(prev)), str(id(node)))
 
-        dot = Digraph()
-        dot.attr(rankdir="LR")
-        add_edge(dot, self)
+            dot = Digraph()
+            dot.attr(rankdir="LR")
+            add_edge(dot, self)
 
-        os.makedirs(save_dir, exist_ok=True)
-        dot.render(os.path.join(save_dir, save_name), format="png", view=True)
+            os.makedirs(save_dir, exist_ok=True)
+            dot.render(os.path.join(save_dir, save_name), format="png", view=True)
+        except ImportError as e:
+            print(e)
+            print("Please install graphviz first")

@@ -403,3 +403,29 @@ class TestVariable:
         assert tx.grad is not None, "Gradient is not computed"
         assert np.allclose(l_var, l_tensor.detach().numpy()), "ReLU is not correct"
         assert np.allclose(vx.grad, tx.grad.numpy()), "Gradient is not correct"
+
+    def test_tanh(self) -> None:
+        ((vx, tx), ) = self.generate_compare_data((2, 3), cnt = 1)
+
+        l_var = Variable.tanh(vx)
+        l_var.backward()
+
+        l_tensor = torch.tanh(tx)
+        l_tensor.sum().backward()
+        
+        assert tx.grad is not None, "Gradient is not computed"
+        assert np.allclose(l_var, l_tensor.detach().numpy()), "Tanh is not correct"
+        assert np.allclose(vx.grad, tx.grad.numpy()), "Gradient is not correct"
+
+    def test_reshape(self) -> None:
+        ((vx, tx), ) = self.generate_compare_data((2, 3), cnt = 1)
+
+        l_var = vx.reshape(1, 6)
+        l_var.backward()
+        
+        l_tensor = tx.reshape(1, 6)
+        l_tensor.sum().backward()
+
+        assert tx.grad is not None, "Gradient is not computed"
+        assert np.allclose(l_var, l_tensor.detach().numpy()), "Reshape is not correct"
+        assert np.allclose(vx.grad, tx.grad.numpy()), "Gradient is not correct"
