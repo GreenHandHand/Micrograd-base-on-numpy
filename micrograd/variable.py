@@ -4,6 +4,7 @@ import os
 from typing import Callable, Self
 
 import numpy as np
+from numpy.typing import ArrayLike, DTypeLike
 
 from .var_utils import sum_broadcast_dim
 
@@ -11,14 +12,14 @@ from .var_utils import sum_broadcast_dim
 class Variable:
     def __init__(
         self,
-        value: np.typing.ArrayLike | int | float,
-        dtype: np.typing.DTypeLike | None = None,
+        value: ArrayLike | int | float,
+        dtype: DTypeLike | None = None,
         *,
         _children: tuple[Variable, ...] = (),
         _op: str = "",
         _require_grad: bool = False,
     ) -> None:
-        self.value = np.array(value, dtype=dtype)
+        self.value: np.ndarray = np.array(value, dtype=dtype)
         self.grad: np.ndarray = np.zeros_like(value, dtype=self.value.dtype)
         self.dtype = self.value.dtype
 
@@ -80,7 +81,7 @@ class Variable:
             self.value[key] = value
         return self
 
-    def __array__(self, dtype: np.typing.DTypeLike | None = None) -> np.ndarray:
+    def __array__(self, dtype: DTypeLike | None = None) -> np.ndarray:
         return self.value if dtype is None else self.value.astype(dtype)
 
     def reshape(self, *shape: int) -> Variable:
@@ -335,6 +336,48 @@ class Variable:
     def __truediv__(self, other: Variable | int | float) -> Variable:
         return self.__mul__(other**-1)
 
+    def max(self, axis: int | None = None, keepdims: bool = False) -> Variable:
+        idx, out = (
+            np.argmax(self.value, axis=axis, keepdims=True),
+            np.max(self.value, axis=axis, keepdims=keepdims),
+        )
+        out = Variable(out, self.dtype, _children=(self,), _op="max")
+        out._require_grad = self._require_grad
+
+        def _backward():
+            if self._require_grad:
+                if axis is None:
+                    self.grad.reshape(-1)[idx] = out.grad
+                else:
+                    temp = np.take_along_axis(self.grad, idx, axis=axis)
+                    np.put_along_axis(
+                        self.grad, idx, temp + out.grad.reshape(temp.shape), axis=axis
+                    )
+
+        out._backward = _backward
+        return out
+    
+    def min(self, axis: int | None = None, keepdims: bool = False) -> Variable:
+        idx, out = (
+            np.argmin(self.value, axis=axis, keepdims=True),
+            np.min(self.value, axis=axis, keepdims=keepdims),
+        )
+        out = Variable(out, self.dtype, _children=(self,), _op="min")
+        out._require_grad = self._require_grad
+
+        def _backward():
+            if self._require_grad:
+                if axis is None:
+                    self.grad.reshape(-1)[idx] = out.grad
+                else:
+                    temp = np.take_along_axis(self.grad, idx, axis=axis)
+                    np.put_along_axis(
+                        self.grad, idx, temp + out.grad.reshape(temp.shape), axis=axis
+                    )
+
+        out._backward = _backward
+        return out
+
     def backward(self):
         topo = []
         visited = set()
@@ -359,7 +402,8 @@ class Variable:
 
     def draw(self, save_dir: str = "test_output", save_name: str = "round_table"):
         try:
-            from graphviz import Digraph # type: ignore
+            from graphviz import Digraph  # type: ignore
+
             visited = set()
 
             def add_edge(dot: Digraph, node: Variable):

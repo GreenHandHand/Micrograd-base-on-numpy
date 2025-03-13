@@ -119,6 +119,8 @@ class CrossEntropyLoss:
         assert y_true.dtype in (np.int32, np.int64, np.long), (
             f"Data type is not matched, expected long but got {y_true.dtype}"
         )
+        # 减去最大值，防止数值不稳定
+        y_pred = y_pred - Variable.max(y_pred, axis=1, keepdims=True)
         cross_entropy = -Variable.log(
             Variable.exp(y_pred[np.arange(y_pred.shape[0]), y_true])
             / Variable.sum(Variable.exp(y_pred), axis=1)

@@ -1,0 +1,27 @@
+[tool.pyright]
+typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+addopts = ["-vs", "--strict-markers"]
+testpaths = "./test"
+python_files = "test*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "add: 加法",
+    "sub: 减法",
+    "div: 除法",
+    "mul: 乘法",
+    "matmul: 矩阵乘法",
+    "slice: 切片操作",
+    "relu: ReLU激活函数相关测试",
+    "tanh: Tanh激活函数相关测试",
+    "pow: 幂运算",
+    "max: 最大值计算",
+    "reshape: 数组重塑",
+    "mean: 平均值计算",
+    "sum: 求和运算",
+    "log: 对数运算",
+    "exp: 指数运算",
+    "integration: 集成测试",
+]

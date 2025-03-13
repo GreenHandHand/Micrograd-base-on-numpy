@@ -6,3 +6,5 @@ __pycache__/
 
 # test output
 test_output/
+
+.coverage
