@@ -1,6 +1,6 @@
+from abc import abstractmethod
 from collections import OrderedDict
 from typing import Any, Literal
-from abc import abstractmethod
 
 import numpy as np
 

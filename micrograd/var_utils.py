@@ -1,6 +1,7 @@
+from typing import Any
+
 import numpy as np
 from numpy.typing import NDArray
-from typing import Any
 
 
 def sum_broadcast_dim(source: NDArray[Any], target: NDArray[Any]) -> NDArray[Any]:
